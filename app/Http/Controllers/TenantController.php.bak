@@ -1,0 +1,192 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Tenant\CustomTenantModel;
+use App\Models\Modulo;
+use Carbon\Carbon;
+
+class TenantController extends Controller
+{
+    
+    public function index()
+    {
+      $this->middleware('permission:system.index');
+      $tenants = CustomTenantModel::with('modulos')->get();
+      return response()->json($tenants);
+    }
+
+    /**
+     * Listar todos los módulos disponibles
+     */
+    public function listarModulos()
+    {
+        $modulos = Modulo::active()->get();
+        return response()->json($modulos);
+    }
+
+    publ    'modulos' => 'nullable|array',
+            'modulos.*.modulo_id' => 'required|exists:modulos,id',
+            'modulos.*.metodo_pago' => 'required|in:mensual,anual',
+        ]);
+        
+        // Convertir fecha a timestamp si viene en formato YYYY-MM-DD
+        $expiresAt = $request->expires_at;
+        if ($expiresAt && strlen($expiresAt) === 10) {
+            $expiresAt = $expiresAt . ' 00:00:00';
+        }
+        
+        $tenant = CustomTenantModel::create([
+            'name' => $request->name,
+            'name_company' => $request->name_company,
+            'domain' => $request->domain,
+            'database' => $request->database,
+            'owner_email' => $request->owner_email,
+            'expires_at' => $expiresAt,
+            'is_active' => 1,
+        ]);
+
+        // Asociar módulos al tenant
+        if ($request->has('modulos')) {
+            foreach ($request->modulos as $moduloData) {
+                $metodoPago = $moduloData['metodo_pago'];
+                
+                // Calcular fecha de vencimiento según método de pago
+                $fechaInicio = now();
+                $fechaVencimiento = $metodoPago === 'mensual' 
+                    ? now()->addMonth() 
+                    : now()->addYear();
+                
+                $tenant->modulos()->attach($moduloData['modulo_id'], [
+                    'metodo_pago' => $metodoPago,
+                    'fecha_inicio' => $fechaInicio,
+                    'fecha_vencimiento' => $fechaVencimiento,
+                    'is_active' => true,
+                ]);
+            }
+        }
+
+        return response()->json($tenant->load('modulos')eate([
+            'name' => $request->name,
+            'name_company' => $request->name_company,
+            'domain' => $request->domain,
+            'database' => $request->database,
+            'owner_email' => $request->owner_email,
+            'expires_at' => $expiresAt,
+            'is_active' => 1,
+        ]);
+
+        return response()->json($tenant, 201);
+    }
+
+    public function createDatabase($id)
+    {
+        $this->middleware('permission:system.create');
+        $tenant = CustomTenantModel::findOrFail($id);
+
+        $dbName = $tenant->database;
+        $dbExists = \DB::select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", [$dbName]);
+
+        if ($dbExists) {
+            return response()->json(['message' => 'La base de datos ya existe para este tenant'], 409);
+        }
+
+        \DB::statement("CREATE DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $tenant->migrated_at = now();
+        $tenant->save();
+
+        return response()->json(['message' => 'Base de datos creada para el tenant']);
+    }
+
+    public function migrate($id)
+    {
+        $this->middleware('permission:system.create');
+        $tenant = CustomTenantModel::findOrFail($id);
+
+        // Configura la conexión 'tenant' con la base de datos del tenant
+        config(['database.connections.tenant.database' => $tenant->database]);
+        \DB::purge('tenant');
+
+        // Ejecuta las migraciones en la base de datos del tenant
+        \Artisan::call('migrate', [
+            '--database' => 'tenant',
+            '--path' => '/database/migrations',
+            '--force' => true,
+        ]);
+
+        return response()->json(['message' => 'Migración ejecutada para el tenant']);
+    }
+
+    public function show($id)
+    {unset($data['modulos']); // Los módulos se manejan por separado
+        
+        // Convertir fecha a timestamp si viene en formato YYYY-MM-DD
+        if (isset($data['expires_at']) && strlen($data['expires_at']) === 10) {
+            $data['expires_at'] = $data['expires_at'] . ' 00:00:00';
+        }
+        
+        $tenant->update($data);
+
+        // Actualizar módulos si se enviaron
+        if ($request->has('modulos')) {
+            $request->validate([
+                'modulos' => 'nullable|array',
+                'modulos.*.modulo_id' => 'required|exists:modulos,id',
+                'modulos.*.metodo_pago' => 'required|in:mensual,anual',
+            ]);
+
+            // Eliminar relaciones anteriores
+            $tenant->modulos()->detach();
+            
+            // Crear nuevas relaciones
+            foreach ($request->modulos as $moduloData) {
+                $metodoPago = $moduloData['metodo_pago'];
+                $fechaInicio = now();
+                $fechaVencimiento = $metodoPago === 'mensual' 
+                    ? now()->addMonth() 
+                    : now()->addYear();
+                
+                $tenant->modulos()->attach($moduloData['modulo_id'], [
+                    'metodo_pago' => $metodoPago,
+                    'fecha_inicio' => $fechaInicio,
+                    'fecha_vencimiento' => $fechaVencimiento,
+                    'is_active' => true,
+                ]);
+            }
+        }
+        
+        return response()->json($tenant->load('modulos')
+        $this->middleware('permission:system.update');
+        $tenant = CustomTenantModel::findOrFail($id);
+        
+        // Validar que el domain sea único (excluyendo el tenant actual)
+        if ($request->has('domain')) {
+            $request->validate([
+                'domain' => 'required|string|unique:tenants,domain,' . $id,
+            ]);
+        }
+        
+        $data = $request->all();
+        
+        // NO permitir cambiar el nombre de la base de datos - renombrar BD es muy riesgoso
+        // El campo domain SÍ puede modificarse (solo identifica el tenant desde la URL)
+        unset($data['database']);
+        
+        // Convertir fecha a timestamp si viene en formato YYYY-MM-DD
+        if (isset($data['expires_at']) && strlen($data['expires_at']) === 10) {
+            $data['expires_at'] = $data['expires_at'] . ' 00:00:00';
+        }
+        
+        $tenant->update($data);
+        return response()->json($tenant);
+    }
+
+    public function destroy($id)
+    {
+        $this->middleware('permission:system.destroy');
+        $tenant = CustomTenantModel::findOrFail($id);
+        $tenant->delete();
+        return response()->json(['message' => 'Tenant eliminado']);
+    }
+}

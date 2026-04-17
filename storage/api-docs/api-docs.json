@@ -1,0 +1,551 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Documentation",
+        "description": "Documentación de API Saas",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API base path"
+        }
+    ],
+    "paths": {
+        "/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Listar todos los roles",
+                "description": "Obtiene todos los roles registrados",
+                "operationId": "0ff14724b94bb4603afb19b1c3d47e32",
+                "responses": {
+                    "200": {
+                        "description": "Lista de roles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Role"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Crear un nuevo rol",
+                "description": "Crea un rol y asigna permisos opcionales",
+                "operationId": "f34ec4451647b177dd22e046234edaa7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Admin"
+                                    },
+                                    "permisosroles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Role"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error en validación o creación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{id}/permissions": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Listar permisos de un rol",
+                "operationId": "c949d28872afa1262409c7686ad1a7f3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permisos del rol",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "permissions": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Permission"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{id}": {
+            "put": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Actualizar un rol",
+                "operationId": "3556da302f68ebb514631386355e626a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "guard_name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Editor"
+                                    },
+                                    "guard_name": {
+                                        "type": "string",
+                                        "example": "api"
+                                    },
+                                    "permisosroles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol actualizado exitosamente"
+                    },
+                    "422": {
+                        "description": "Error en actualización"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Eliminar un rol",
+                "operationId": "288a6d7b3542abda8ed4fbb41109f6d5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rol eliminado"
+                    },
+                    "404": {
+                        "description": "Rol no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/search": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Buscar roles por nombre o guard_name",
+                "operationId": "a7ea43c0226f39f1fc88814706023f3f",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Role"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/categoriesHome": {
+            "get": {
+                "tags": [
+                    "Home"
+                ],
+                "summary": "Obtener categorías con sus subcategorías",
+                "operationId": "464677a15e31ae6cc3278236946b17ec",
+                "responses": {
+                    "200": {
+                        "description": "Lista de categorías",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Category"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{category_slug}": {
+            "get": {
+                "tags": [
+                    "Home"
+                ],
+                "summary": "Listar productos por categoría",
+                "operationId": "2c26c4a58f30f7efc545832ace84f9e3",
+                "parameters": [
+                    {
+                        "name": "category_slug",
+                        "in": "path",
+                        "description": "Slug de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "zapatos"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Cantidad de productos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de productos de la categoría",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/product/{id}": {
+            "get": {
+                "tags": [
+                    "Home"
+                ],
+                "summary": "Obtener detalles de un producto",
+                "operationId": "5d3cdbe419fcd3d89db16e83d302aa0b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del producto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        },
+                                        "images": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageProduct"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Role": {
+                "title": "Role",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Admin"
+                    },
+                    "guard_name": {
+                        "type": "string",
+                        "example": "api"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-12T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-12T12:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Permission": {
+                "title": "Permission",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "admin.index"
+                    },
+                    "guard_name": {
+                        "type": "string",
+                        "example": "api"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-12T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-12T12:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Category": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Zapatos"
+                    },
+                    "name_en": {
+                        "type": "string",
+                        "example": "Shoes"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "zapatos"
+                    },
+                    "icono": {
+                        "type": "string",
+                        "example": "fa-shoe-prints"
+                    },
+                    "imagen": {
+                        "type": "string",
+                        "example": "category.jpg"
+                    },
+                    "subCategories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Category"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Product": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Zapato de cuero"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "Activo"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150.5
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Category"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ImageProduct": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "product.jpg"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Vista lateral"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Roles",
+            "description": "Roles"
+        },
+        {
+            "name": "Home",
+            "description": "Home"
+        }
+    ]
+}

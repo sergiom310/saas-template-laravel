@@ -1,0 +1,10 @@
+{
+    "name": "Laravel API-SAAS",
+    "dockerComposeFile": [
+        "../../docker-compose.agendas.yml"
+    ],
+    "service": "agendas-app",
+    "workspaceFolder": "/var/www/agendas-saas-laravel",
+    "postCreateCommand": "composer install && php artisan key:generate",
+    "shutdownAction": "stopCompose"
+  }

@@ -1,0 +1,92 @@
+name: Deploy Backend SaaS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - agendas
+          - parking
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [agendas]  # Agrega aquí nuevos módulos: , parking
+    environment: ${{ github.event.inputs.environment || matrix.environment }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # Configurar SSH para conectarse al VPS
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      # Copiar archivos del proyecto al VPS (sin vendor, caché, ni git)
+      - name: Copy project files to VPS
+        run: |
+          rsync -avz \
+            --delete \
+            --exclude ".devcontainer" \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".editorconfig" \
+            --exclude ".gitignore" \
+            --exclude ".env" \
+            --exclude ".env.example" \
+            --exclude "vendor" \
+            --exclude "storage" \
+            --exclude "bootstrap/cache" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./* \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/saas/backend
+
+      # Crear carpetas de storage y dar permisos correctos
+      - name: Prepare Laravel storage folders
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd /var/www/saas/backend
+
+            echo "🔧 Creando directorios de storage requeridos por Laravel..."
+            mkdir -p storage/app/public
+            mkdir -p storage/app/private
+            mkdir -p storage/framework/{cache,sessions,views}
+            mkdir -p storage/logs
+
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
+            echo "✅ Directorios creados y permisos asignados."
+          EOF
+
+      # Levantar o actualizar el stack con Docker Compose
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd /var/www/saas
+
+            echo "🚀 Recreando contenedores si es necesario..."
+            docker compose up -d saas-backend saas-webserver
+
+            echo "📦 Instalando dependencias con Composer dentro del contenedor..."
+            docker exec saas-backend composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "🧹 Limpiando y regenerando cachés de Laravel..."
+            docker exec saas-backend php artisan config:clear || true
+            docker exec saas-backend php artisan cache:clear || true
+            docker exec saas-backend php artisan view:clear || true
+            docker exec saas-backend php artisan route:clear || true
+            docker exec saas-backend php artisan config:cache || true
+
+            echo "✅ Despliegue completado correctamente."
+          EOF
