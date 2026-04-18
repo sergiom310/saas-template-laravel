@@ -14,19 +14,19 @@ return new class extends Migration
         Schema::create('tenants_pagos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->foreignId('modulo_id')->constrained('modulos')->onDelete('cascade');
+            $table->unsignedBigInteger('modulo_id')->nullable();
             $table->dateTime('fecha_pago');
             $table->decimal('monto', 10, 2);
-            $table->enum('metodo_pago', ['mensual', 'anual']);
+            $table->string('metodo_pago', 100)->nullable()->comment('Forma de pago: Efectivo, Transferencia, etc.');
+            $table->enum('tipo_periodo', ['mensual', 'anual'])->nullable()->comment('Duración del período contratado');
             $table->date('fecha_inicio_periodo');
-            $table->date('fecha_fin_periodo');
+            $table->date('fecha_fin_periodo')->nullable();
             $table->string('referencia_pago', 100)->nullable()->comment('Número de transacción o referencia del pago');
             $table->text('notas')->nullable();
             $table->timestamps();
-            
+
             // Índices para consultas frecuentes
             $table->index(['tenant_id', 'fecha_pago']);
-            $table->index(['modulo_id', 'fecha_pago']);
         });
     }
 
