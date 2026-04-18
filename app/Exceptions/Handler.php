@@ -2,11 +2,16 @@
 
 namespace App\Exceptions;
 
-use Throwable;
 use Exception;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
 
 class Handler extends ExceptionHandler
 {
@@ -32,7 +37,6 @@ class Handler extends ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @param  \Throwable  $exception
      * @return void
      */
     public function report(Throwable $exception)
@@ -48,29 +52,29 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @param  Exception  $exception
+     * @return Response
      */
     public function render($request, Throwable $exception)
     {
         $response = null;
 
         // Manejar ValidationException para retornar todos los errores
-        if ($exception instanceof \Illuminate\Validation\ValidationException) {
+        if ($exception instanceof ValidationException) {
             $response = response()->json([
                 'errors' => $exception->errors(),
-                'status' => 422
+                'status' => 422,
             ], 422);
-        } else if ($exception instanceof \Spatie\Permission\Exceptions\UnauthorizedException) {
+        } elseif ($exception instanceof UnauthorizedException) {
             $response = response()->json(['error' => 'User have not permission for this page access.'], 401);
-        } else if ($exception instanceof ModelNotFoundException) {
+        } elseif ($exception instanceof ModelNotFoundException) {
             $response = response()->json(['error' => 'Entry for '.str_replace('App\\', '', $exception->getModel()).' not found'], 404);
-        } else if ($exception instanceof GithubAPIException) {
+        } elseif ($exception instanceof GithubAPIException) {
             $response = response()->json(['error' => $exception->getMessage()], 500);
-        } else if ($exception instanceof RequestException) {
+        } elseif ($exception instanceof RequestException) {
             $response = response()->json(['error' => 'External API call failed.'], 500);
-        } elseif ($exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+        } elseif ($exception instanceof NotFoundHttpException) {
             $response = response()->json(['error' => 'Endpoint not found'], 404);
         } else {
             $response = parent::render($request, $exception);
@@ -83,9 +87,9 @@ class Handler extends ExceptionHandler
     /**
      * Add CORS headers to response
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Illuminate\Http\Response  $response
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @param  Response  $response
+     * @return Response
      */
     protected function addCorsHeaders($request, $response)
     {
@@ -93,8 +97,8 @@ class Handler extends ExceptionHandler
 
         $allowedOrigins = [
             'http://localhost:9000',
-            'http://cliente1.agendas.local:9000',
-            'http://agendas.local:9000',
+            'http://cliente1.template.local:9000',
+            'http://template.local:9000',
         ];
 
         $allowOrigin = in_array($origin, $allowedOrigins) ? $origin : 'http://localhost:9000';

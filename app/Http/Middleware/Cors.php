@@ -3,14 +3,14 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\Request;
 
 class Cors
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  Request  $request
      * @return mixed
      */
     public function handle($request, Closure $next)
@@ -20,8 +20,8 @@ class Cors
         // Lista de orígenes permitidos para desarrollo
         $allowedOrigins = [
             'http://localhost:9000',
-            'http://cliente1.agendas.local:9000',
-            'http://agendas.local:9000',
+            'http://cliente1.template.local:9000',
+            'http://template.local:9000',
         ];
 
         // Verificar si el origen está en la lista o si es un dominio de producción
@@ -31,13 +31,13 @@ class Cors
             $allowOrigin = $origin;
         } elseif ($origin) {
             // Verificar si es el dominio principal de producción o un subdominio
-            if (preg_match('/^https?:\/\/([\w-]+\.)?agendas\.grupoados\.com$/', $origin)) {
+            if (preg_match('/^https?:\/\/([\.\w-]+\.)?template\.grupoados\.com$/', $origin)) {
                 $allowOrigin = $origin;
             }
         }
 
         // Manejar preflight OPTIONS
-        if ($request->getMethod() === "OPTIONS") {
+        if ($request->getMethod() === 'OPTIONS') {
             return response('', 200)
                 ->header('Access-Control-Allow-Origin', $allowOrigin)
                 ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
@@ -62,12 +62,12 @@ class Cors
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             $response = response()->json([
                 'error' => 'Internal Server Error',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
 
             return $response

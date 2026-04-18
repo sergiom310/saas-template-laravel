@@ -1,47 +1,40 @@
 <?php
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\API\UserController;
-use Illuminate\Support\Facades\Route;
-//use App\Http\Controllers\API\MenuController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\API\PermissionController;
-use App\Http\Controllers\API\RoleController;
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\API\ProductsController;
 use App\Http\Controllers\API\BrandController;
+use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\EmpresaController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\PermissionController;
+use App\Http\Controllers\API\ProductsController;
+use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\TagController;
-use App\Http\Controllers\API\TipoVehiculoController;
-use App\Http\Controllers\API\TarifaController;
-use App\Http\Controllers\API\TarifaReglaController;
-use App\Http\Controllers\API\FacturaController;
-use App\Http\Controllers\API\MetodoPagoController;
-use App\Http\Controllers\MetodosPagoAgdController;
-use App\Http\Controllers\API\ClienteController;
-use App\Http\Controllers\API\PagoController;
-use App\Http\Controllers\API\CuadreCajaController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MetodosPagoController;
+use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\TenantController;
-use App\Http\Controllers\EmpresaController;
-use App\Http\Controllers\VentaController;
+use App\Http\Middleware\JwtAuthMiddleware;
+use App\Http\Middleware\JwtCookieMiddleware;
+use App\Models\Tenant\CustomTenantModel;
+use Illuminate\Support\Facades\Route;
 
 // Open routes
 Route::get('/', [HomeController::class, 'index']);
 
 // Ruta de prueba para verificar tenant status
 Route::get('/test-tenant-status', function () {
-    $tenant = \App\Models\Tenant\CustomTenantModel::current();
+    $tenant = CustomTenantModel::current();
+
     return response()->json([
         'tenant_detected' => $tenant ? true : false,
         'tenant_id' => $tenant?->id,
         'tenant_domain' => $tenant?->domain,
         'tenant_name' => $tenant?->name,
         'is_active' => $tenant?->is_active,
-        'middleware_executed' => true
+        'middleware_executed' => true,
     ]);
 });
-
-//Route::get('menus', [MenuController::class, 'index']);
 
 Route::get('categoriesHome', [HomeController::class, 'categoriesHome']);
 Route::get('productslist/{category_id}', [HomeController::class, 'listProducts']);
@@ -66,7 +59,7 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 // Protected routes
-Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, \App\Http\Middleware\JwtAuthMiddleware::class]], function () {
+Route::group(['middleware' => [JwtCookieMiddleware::class, JwtAuthMiddleware::class]], function () {
 
     // Tenants
     Route::get('tenants', [TenantController::class, 'index']);
@@ -79,15 +72,15 @@ Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, 
     Route::post('tenants/{id}/pago-modulo', [TenantController::class, 'pagoModuloTenant']);
     Route::get('tenants-pagos', [TenantController::class, 'listarPagos']);
     Route::get('mis-pagos', [TenantController::class, 'listarMisPagos']);
-    
+
     // Módulos
-    Route::get('modulos-admin', [\App\Http\Controllers\ModuloController::class, 'index']);
-    Route::post('modulos-admin', [\App\Http\Controllers\ModuloController::class, 'store']);
-    Route::get('modulos-admin/{id}', [\App\Http\Controllers\ModuloController::class, 'show']);
-    Route::put('modulos-admin/{id}', [\App\Http\Controllers\ModuloController::class, 'update']);
-    Route::delete('modulos-admin/{id}', [\App\Http\Controllers\ModuloController::class, 'destroy']);
-    Route::put('modulos-admin/{id}/toggle-status', [\App\Http\Controllers\ModuloController::class, 'toggleStatus']);
-    
+    Route::get('modulos-admin', [ModuloController::class, 'index']);
+    Route::post('modulos-admin', [ModuloController::class, 'store']);
+    Route::get('modulos-admin/{id}', [ModuloController::class, 'show']);
+    Route::put('modulos-admin/{id}', [ModuloController::class, 'update']);
+    Route::delete('modulos-admin/{id}', [ModuloController::class, 'destroy']);
+    Route::put('modulos-admin/{id}/toggle-status', [ModuloController::class, 'toggleStatus']);
+
     // Permissions
     Route::get('permissions', [PermissionController::class, 'index']);
     Route::post('permissions', [PermissionController::class, 'store']);
@@ -118,62 +111,6 @@ Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, 
     Route::post('update-password', [UserController::class, 'updatePassword']);
     Route::get('findUser', [UserController::class, 'search']);
 
-    // Métodos de Pago para sistema de agendas
-    Route::get('agd-metodos-pago', [MetodosPagoAgdController::class, 'index']);
-    Route::get('agd-metodos-pago/activos', [MetodosPagoAgdController::class, 'activos']);
-    Route::post('agd-metodos-pago', [MetodosPagoAgdController::class, 'store']);
-    Route::get('agd-metodos-pago/{id}', [MetodosPagoAgdController::class, 'show']);
-    Route::put('agd-metodos-pago/{id}', [MetodosPagoAgdController::class, 'update']);
-    Route::delete('agd-metodos-pago/{id}', [MetodosPagoAgdController::class, 'destroy']);
-    Route::put('agd-metodos-pago/{id}/toggle-status', [MetodosPagoAgdController::class, 'toggleStatus']);
-    
-    // Especialidades
-    Route::get('especialidades', [\App\Http\Controllers\EspecialidadController::class, 'index']);
-    Route::post('especialidades', [\App\Http\Controllers\EspecialidadController::class, 'store']);
-    Route::get('especialidades/{id}', [\App\Http\Controllers\EspecialidadController::class, 'show']);
-    Route::put('especialidades/{id}', [\App\Http\Controllers\EspecialidadController::class, 'update']);
-    Route::delete('especialidades/{id}', [\App\Http\Controllers\EspecialidadController::class, 'destroy']);
-    Route::put('especialidades/status/{id}', [\App\Http\Controllers\EspecialidadController::class, 'activate']);
-
-    // Clientes Agenda
-    Route::get('clientes-agenda', [\App\Http\Controllers\ClienteController::class, 'index']);
-    Route::post('clientes-agenda', [\App\Http\Controllers\ClienteController::class, 'store']);
-    Route::get('clientes-agenda/{id}', [\App\Http\Controllers\ClienteController::class, 'show']);
-    Route::put('clientes-agenda/{id}', [\App\Http\Controllers\ClienteController::class, 'update']);
-    Route::delete('clientes-agenda/{id}', [\App\Http\Controllers\ClienteController::class, 'destroy']);
-
-    // Franjas Horarias
-    Route::get('franjas-horarias', [\App\Http\Controllers\FranjaHorariaController::class, 'index']);
-    Route::post('franjas-horarias', [\App\Http\Controllers\FranjaHorariaController::class, 'store']);
-    Route::get('franjas-horarias/{id}', [\App\Http\Controllers\FranjaHorariaController::class, 'show']);
-    Route::put('franjas-horarias/{id}', [\App\Http\Controllers\FranjaHorariaController::class, 'update']);
-    Route::delete('franjas-horarias/{id}', [\App\Http\Controllers\FranjaHorariaController::class, 'destroy']);
-
-    // Profesionales
-    Route::get('profesionales', [\App\Http\Controllers\ProfesionalController::class, 'index']);
-    Route::post('profesionales', [\App\Http\Controllers\ProfesionalController::class, 'store']);
-    Route::get('profesionales/{id}', [\App\Http\Controllers\ProfesionalController::class, 'show']);
-    Route::put('profesionales/{id}', [\App\Http\Controllers\ProfesionalController::class, 'update']);
-    Route::delete('profesionales/{id}', [\App\Http\Controllers\ProfesionalController::class, 'destroy']);
-
-    // Agenda
-    Route::get('agenda', [\App\Http\Controllers\AgendaController::class, 'index']);
-    Route::get('agenda/disponibilidad', [\App\Http\Controllers\AgendaController::class, 'disponibilidad']);
-    Route::post('agenda', [\App\Http\Controllers\AgendaController::class, 'store']);
-    Route::get('agenda/{id}', [\App\Http\Controllers\AgendaController::class, 'show']);
-    Route::put('agenda/{id}', [\App\Http\Controllers\AgendaController::class, 'update']);
-    Route::delete('agenda/{id}', [\App\Http\Controllers\AgendaController::class, 'destroy']);
-    Route::put('agenda/{id}/estado', [\App\Http\Controllers\AgendaController::class, 'cambiarEstado']);
-
-    // Pagos de Agenda
-    // Route::get('metodos-pago', [\App\Http\Controllers\PagoAgendaController::class, 'metodosPago']);
-    Route::get('pagos/reporte/pdf', [\App\Http\Controllers\PagoAgendaController::class, 'reportePDF']);
-    Route::get('pagos/reporte/excel', [\App\Http\Controllers\PagoAgendaController::class, 'reporteExcel']);
-    Route::get('pagos', [\App\Http\Controllers\PagoAgendaController::class, 'index']);
-    Route::post('pago-agenda', [\App\Http\Controllers\PagoAgendaController::class, 'store']);
-    Route::put('pagos/{id}', [\App\Http\Controllers\PagoAgendaController::class, 'update']);
-    Route::delete('pagos/{id}', [\App\Http\Controllers\PagoAgendaController::class, 'destroy']);
-
     // Brands
     Route::get('brands', [BrandController::class, 'index']);
     Route::post('brands', [BrandController::class, 'store']);
@@ -181,7 +118,7 @@ Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, 
     Route::put('brands/{id}', [BrandController::class, 'update']);
     Route::delete('brands/{id}', [BrandController::class, 'destroy']);
     Route::put('brands/brandstatus/{id}', [BrandController::class, 'activate']);
-        
+
     // Categories
     Route::get('categories', [CategoryController::class, 'index']);
     Route::post('categories', [CategoryController::class, 'store']);
@@ -197,8 +134,6 @@ Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, 
     Route::get('tags/{id}', [TagController::class, 'show']);
     Route::put('tags/{id}', [TagController::class, 'update']);
     Route::delete('tags/{id}', [TagController::class, 'destroy']);
-    Route::post('tagcreate', [TagController::class, 'store']);
-    Route::post('tagupdate', [TagController::class, 'update']);
 
     // Products
     Route::get('products', [ProductsController::class, 'index']);
@@ -210,108 +145,31 @@ Route::group(['middleware' => [\App\Http\Middleware\JwtCookieMiddleware::class, 
     Route::post('products/{id}/images', [ProductsController::class, 'storeImage']);
     Route::delete('products/images/{id}', [ProductsController::class, 'deleteImage']);
 
-    // Ventas de Productos
-    Route::get('ventas', [VentaController::class, 'index']);
-    Route::post('ventas', [VentaController::class, 'store']);
-    Route::get('ventas/estadisticas', [VentaController::class, 'estadisticas']);
-    Route::get('ventas/{id}', [VentaController::class, 'show']);
-    Route::put('ventas/{id}/estado', [VentaController::class, 'updateEstado']);
-    Route::post('ventas/{id}/pagos', [VentaController::class, 'addPago']);
-    Route::delete('ventas/{id}', [VentaController::class, 'destroy']);
-
-    // Tipo Vehiculo
-    Route::get('tipo-vehiculos', [TipoVehiculoController::class, 'index']);
-    Route::post('tipo-vehiculos', [TipoVehiculoController::class, 'store']);
-    Route::get('tipo-vehiculos/{id}', [TipoVehiculoController::class, 'show']);
-    Route::put('tipo-vehiculos/{id}', [TipoVehiculoController::class, 'update']);
-    Route::delete('tipo-vehiculos/{id}', [TipoVehiculoController::class, 'destroy']);
-    Route::put('tipo-vehiculos/tipovehiculostatus/{id}', [TipoVehiculoController::class, 'activate']);
-    Route::get('tipo-vehiculos-activos', [TipoVehiculoController::class, 'registrosActivos']);
-
-    // Tarifas
-    Route::get('tarifas', [TarifaController::class, 'index']);
-    Route::post('tarifas', [TarifaController::class, 'store']);
-    Route::get('tarifas/{id}', [TarifaController::class, 'show']);
-    Route::put('tarifas/{id}', [TarifaController::class, 'update']);
-    Route::delete('tarifas/{id}', [TarifaController::class, 'destroy']);
-    Route::put('tarifas/tarifastatus/{id}', [TarifaController::class, 'activate']);
-
-    // Tarifa Reglas
-    Route::get('tarifa-reglas', [TarifaReglaController::class, 'index']);
-    Route::post('tarifa-reglas', [TarifaReglaController::class, 'store']);
-    Route::get('tarifa-reglas/{id}', [TarifaReglaController::class, 'show']);
-    Route::put('tarifa-reglas/{id}', [TarifaReglaController::class, 'update']);
-    Route::delete('tarifa-reglas/{id}', [TarifaReglaController::class, 'destroy']);
-
-    // Facturas
-    Route::get('facturas', [FacturaController::class, 'index']);
-    Route::post('facturas', [FacturaController::class, 'store']);
-    Route::post('facturas/calcular-tarifa', [FacturaController::class, 'calcularTarifa']);
-    Route::get('facturas/{id}', [FacturaController::class, 'show']);
-    Route::put('facturas/{id}', [FacturaController::class, 'update']);
-    Route::delete('facturas/{id}', [FacturaController::class, 'destroy']);
-    Route::post('facturas/{id}/confirmar-cobro', [FacturaController::class, 'confirmarCobro']);
-    // Nuevo endpoint para calcular tarifa sin cerrar factura
-
-    // Métodos de Pago para sistema de parqueaderos
-    Route::get('metodos-pago', [MetodoPagoController::class, 'index']);
-    Route::get('metodos-pago/activos', [MetodoPagoController::class, 'activos']);
-    Route::post('metodos-pago', [MetodoPagoController::class, 'store']);
-    Route::get('metodos-pago/{id}', [MetodoPagoController::class, 'show']);
-    Route::put('metodos-pago/{id}', [MetodoPagoController::class, 'update']);
-    Route::delete('metodos-pago/{id}', [MetodoPagoController::class, 'destroy']);
-    Route::put('metodos-pago/{id}/toggle-status', [MetodoPagoController::class, 'toggleStatus']);
-
-    // Clientes
-    Route::get('clientes', [ClienteController::class, 'index']);
-    Route::post('clientes', [ClienteController::class, 'store']);
-    Route::get('clientes/{id}', [ClienteController::class, 'show']);
-    Route::put('clientes/{id}', [ClienteController::class, 'update']);
-    Route::delete('clientes/{id}', [ClienteController::class, 'destroy']);
-    Route::put('clientes/{id}/status', [ClienteController::class, 'activate']);
-
-    // Pagos (Comentado - usar PagoAgendaController para sistema de agendas)
-    // Route::get('pagos', [PagoController::class, 'index']);
-    // Route::post('pagos', [PagoController::class, 'store']);
-    // Route::get('pagos/{id}', [PagoController::class, 'show']);
-    // Route::put('pagos/{id}', [PagoController::class, 'update']);
-    // Route::delete('pagos/{id}', [PagoController::class, 'destroy']);
-    // Route::get('pagos-cliente/{codCli}', [PagoController::class, 'pagosPorCliente']);
-
-    // Cuadre de caja
-    Route::get('cuadres', [CuadreCajaController::class, 'index']);
-    Route::post('cuadres', [CuadreCajaController::class, 'store']);
-    Route::post('cuadres/{id}/close', [CuadreCajaController::class, 'close']);
-    Route::get('cuadres/{id}/resumen', [CuadreCajaController::class, 'resumen']);
-    Route::get('cuadres/{id}/detalle', [CuadreCajaController::class, 'detalle']);
-
-    // Ticket de entrada
-    Route::get('ticket/entrada/{facturaId}', [\App\Http\Controllers\API\TicketController::class, 'entrada']);
+    // Métodos de Pago
+    Route::get('metodos-pago', [MetodosPagoController::class, 'index']);
+    Route::get('metodos-pago/activos', [MetodosPagoController::class, 'activos']);
+    Route::post('metodos-pago', [MetodosPagoController::class, 'store']);
+    Route::get('metodos-pago/{id}', [MetodosPagoController::class, 'show']);
+    Route::put('metodos-pago/{id}', [MetodosPagoController::class, 'update']);
+    Route::delete('metodos-pago/{id}', [MetodosPagoController::class, 'destroy']);
+    Route::put('metodos-pago/{id}/toggle-status', [MetodosPagoController::class, 'toggleStatus']);
 
     // Empresa
-    Route::get('empresa', [EmpresaController::class, 'show']);
+    Route::get('empresa', [EmpresaController::class, 'index']);
     Route::post('empresa', [EmpresaController::class, 'store']);
-    Route::post('empresa/logo', [EmpresaController::class, 'uploadLogo']);
+    Route::put('empresa/{id}', [EmpresaController::class, 'update']);
 
-    // Configuración General
-    Route::get('configuracion', [\App\Http\Controllers\ConfiguracionController::class, 'index']);
-    Route::post('configuracion/update', [\App\Http\Controllers\ConfiguracionController::class, 'update']);
-
-    // Gastos
-    Route::get('gastos', [\App\Http\Controllers\GastoController::class, 'index']);
-    Route::post('gastos', [\App\Http\Controllers\GastoController::class, 'store']);
-    Route::put('gastos/{id}', [\App\Http\Controllers\GastoController::class, 'update']);
-    Route::delete('gastos/{id}', [\App\Http\Controllers\GastoController::class, 'destroy']);
-
-    // Reportes
-    Route::get('reportes/datos', [\App\Http\Controllers\ReporteController::class, 'obtenerDatos']);
-    Route::get('reportes/pdf-detallado', [\App\Http\Controllers\ReporteController::class, 'pdfDetallado']);
-    Route::get('reportes/pdf-resumido', [\App\Http\Controllers\ReporteController::class, 'pdfResumido']);
-    Route::get('reportes/excel-detallado', [\App\Http\Controllers\ReporteController::class, 'excelDetallado']);
-    Route::get('reportes/excel-resumido', [\App\Http\Controllers\ReporteController::class, 'excelResumido']);
+    // Ventas / Órdenes de Productos
+    Route::get('ventas', [OrderController::class, 'index']);
+    Route::post('ventas', [OrderController::class, 'store']);
+    Route::get('ventas/estadisticas', [OrderController::class, 'estadisticas']);
+    Route::get('ventas/{id}', [OrderController::class, 'show']);
+    Route::put('ventas/{id}/estado', [OrderController::class, 'updateEstado']);
+    Route::post('ventas/{id}/pagos', [OrderController::class, 'addPago']);
+    Route::delete('ventas/{id}', [OrderController::class, 'destroy']);
 });
 
-Route::fallback(function(){
+Route::fallback(function () {
     return response()->json([
         'message' => 'Page Not Found.'], 404);
 });

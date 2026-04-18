@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Carbon\Carbon;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class TenantSeeder extends Seeder
 {
@@ -17,115 +17,112 @@ class TenantSeeder extends Seeder
     public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // Ejecutar el seeder de configuración
-        $this->call(ConfiguracionSeeder::class);
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         DB::table('permissions')->insert([
-            'name' => "system.index",
+            'name' => 'system.index',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "system.update",
+            'name' => 'system.update',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "system.create",
+            'name' => 'system.create',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "system.destroy",
+            'name' => 'system.destroy',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "admin.index",
+            'name' => 'admin.index',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "admin.update",
+            'name' => 'admin.update',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "admin.create",
+            'name' => 'admin.create',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "admin.destroy",
+            'name' => 'admin.destroy',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "usuario.index",
+            'name' => 'usuario.index',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "usuario.update",
+            'name' => 'usuario.update',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "usuario.create",
+            'name' => 'usuario.create',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('permissions')->insert([
-            'name' => "usuario.destroy",
+            'name' => 'usuario.destroy',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         // insertar roles *
         DB::table('roles')->insert([
-            'name' => "System",
+            'name' => 'System',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('roles')->insert([
-            'name' => "Administrador",
+            'name' => 'Administrador',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         DB::table('roles')->insert([
-            'name' => "Usuario",
+            'name' => 'Usuario',
             'guard_name' => 'api',
             'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now(),
         ]);
 
         // * ahora le asignamos todos los permisos al role system *
@@ -134,10 +131,14 @@ class TenantSeeder extends Seeder
 
         // * permisos de módulo admin *
         $role = Role::find(2);
-        $role->syncPermissions([5,6,7,8,9,10,11,12]);
+        $role->syncPermissions([5, 6, 7, 8, 9, 10, 11, 12]);
 
         // * permisos de módulo usuario *
         $role = Role::find(3);
-        $role->syncPermissions([9,10,11,12]);
+        $role->syncPermissions([9, 10, 11, 12]);
+
+        $this->call([
+            MetodosPagoSeeder::class,
+        ]);
     }
 }

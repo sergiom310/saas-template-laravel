@@ -34,11 +34,7 @@ Publicar config:
 
 # php artisan migrate --path=database/migrations/landlord --database=landlord
 
-11. Migracion de la tabla módulos de la base principal: migra los modulos de la empresa
-
-# php artisan db:seed --class=ModulosSeeder
-
-12. ## Configuración de cookies JWT para login y logout (desarrollo y producción)
+11. ## Configuración de cookies JWT para login y logout (desarrollo y producción)
 
 El trait `JWTResponseTrait` y el método `logout` usan cookies httpOnly para el token JWT. Para que funcionen correctamente en desarrollo y producción, debes configurar las siguientes variables en tu archivo `.env`:
 

@@ -6,15 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('agd_venta_detalle', function (Blueprint $table) {
+        Schema::create('venta_detalle', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('venta_id')->comment('ID de la venta');
-            $table->foreign('venta_id')->references('id')->on('agd_ventas')->onDelete('cascade');
+            $table->foreign('venta_id')->references('id')->on('ventas')->onDelete('cascade');
             $table->unsignedBigInteger('producto_id')->comment('ID del producto vendido');
             $table->foreign('producto_id')->references('id')->on('products')->onDelete('restrict');
             $table->string('producto_nombre')->comment('Nombre del producto al momento de la venta');
@@ -24,17 +21,14 @@ return new class extends Migration
             $table->decimal('descuento', 19, 2)->default(0)->comment('Descuento aplicado a este ítem');
             $table->decimal('total', 19, 2)->comment('Total del ítem (subtotal - descuento)');
             $table->timestamps();
-            
+
             $table->index('venta_id');
             $table->index('producto_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('agd_venta_detalle');
+        Schema::dropIfExists('venta_detalle');
     }
 };

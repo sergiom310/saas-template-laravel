@@ -2,20 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Empresa extends Model
 {
-    use HasFactory;
+    protected $table = 'empresa';
 
     protected $fillable = [
         'nombre',
+        'nit',
         'direccion',
         'telefono',
-        'nit',
-        'mensaje_recibo',
-        'horario_atencion',
-        'logo_path',
+        'email',
+        'sitio_web',
+        'logo',
+        'imagen_header',
+        'ciudad',
+        'pais',
+        'descripcion',
+        'moneda',
+        'impuesto_label',
+        'impuesto_porcentaje',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'impuesto_porcentaje' => 'decimal:2',
+        ];
+    }
 }

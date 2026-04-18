@@ -6,15 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('agd_ventas', function (Blueprint $table) {
+        Schema::create('ventas', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->comment('Usuario que realiza la venta');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('restrict');
+            $table->string('cliente_nombre')->nullable()->comment('Nombre del cliente (opcional)');
             $table->decimal('subtotal', 19, 2)->default(0)->comment('Subtotal de la venta');
             $table->decimal('descuento', 19, 2)->default(0)->comment('Descuento aplicado');
             $table->decimal('total', 19, 2)->default(0)->comment('Total de la venta');
@@ -23,18 +21,15 @@ return new class extends Migration
             $table->timestamp('fecha_venta')->useCurrent()->comment('Fecha y hora de la venta');
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index('user_id');
             $table->index('estado');
             $table->index('fecha_venta');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('agd_ventas');
+        Schema::dropIfExists('ventas');
     }
 };

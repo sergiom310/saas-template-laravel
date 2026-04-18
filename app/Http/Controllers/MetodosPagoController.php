@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\MetodoPago;
+use App\Models\MetodosPago;
 use Illuminate\Http\Request;
 
-class MetodoPagoController extends Controller
+class MetodosPagoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +13,7 @@ class MetodoPagoController extends Controller
     public function index()
     {
         $this->middleware('permission:admin.index');
-        $response = MetodoPago::orderBy('detalle', 'asc')->get();
+        $response = MetodosPago::orderBy('detalle', 'asc')->get();
 
         return response()->json($response, 200);
     }
@@ -28,17 +27,17 @@ class MetodoPagoController extends Controller
 
         $request->validate([
             'detalle' => 'required|string|max:100|unique:metodo_pago,detalle',
-            'activo' => 'boolean'
+            'activo' => 'boolean',
         ]);
 
         try {
-            $response = MetodoPago::create($request->all());
+            $response = MetodosPago::create($request->all());
         } catch (\Exception $exception) {
             return response()->json(['error' => $exception->getMessage()], 422);
         }
 
         return response()->json([
-            "data" => $response
+            'data' => $response,
         ], 200);
     }
 
@@ -48,7 +47,7 @@ class MetodoPagoController extends Controller
     public function show($id)
     {
         $this->middleware('permission:admin.index');
-        $response = MetodoPago::whereId($id)->get();
+        $response = MetodosPago::whereId($id)->get();
 
         return response()->json($response, 200);
     }
@@ -61,18 +60,18 @@ class MetodoPagoController extends Controller
         $this->middleware('permission:admin.update');
 
         $request->validate([
-            'detalle' => 'required|string|max:100|unique:metodo_pago,detalle,' . $id,
-            'activo' => 'boolean'
+            'detalle' => 'required|string|max:100|unique:metodo_pago,detalle,'.$id,
+            'activo' => 'boolean',
         ]);
 
         try {
-            $metodoPago = MetodoPago::findOrFail($id);
-            $metodoPago->update($request->all());
+            $metodosPago = MetodosPago::findOrFail($id);
+            $metodosPago->update($request->all());
         } catch (\Exception $exception) {
             return response()->json(['errors' => $exception->getMessage()], 422);
         }
 
-        return response()->json($metodoPago, 200);
+        return response()->json($metodosPago, 200);
     }
 
     /**
@@ -81,9 +80,9 @@ class MetodoPagoController extends Controller
     public function destroy($id)
     {
         $this->middleware('permission:admin.destroy');
-        $metodoPago = MetodoPago::findOrFail($id);
-        
-        $metodoPago->delete();
+        $metodosPago = MetodosPago::findOrFail($id);
+
+        $metodosPago->delete();
 
         return response()->json(['success' => 'Registro eliminado'], 200);
     }
@@ -94,15 +93,15 @@ class MetodoPagoController extends Controller
     public function toggleStatus($id)
     {
         $this->middleware('permission:admin.update');
-        
+
         try {
-            $metodoPago = MetodoPago::findOrFail($id);
-            $metodoPago->activo = !$metodoPago->activo;
-            $metodoPago->save();
-            
+            $metodosPago = MetodosPago::findOrFail($id);
+            $metodosPago->activo = ! $metodosPago->activo;
+            $metodosPago->save();
+
             return response()->json([
                 'success' => 'Estado actualizado exitosamente',
-                'activo' => $metodoPago->activo
+                'activo' => $metodosPago->activo,
             ], 200);
         } catch (\Exception $exception) {
             return response()->json(['errors' => $exception->getMessage()], 422);
@@ -114,7 +113,7 @@ class MetodoPagoController extends Controller
      */
     public function activos()
     {
-        $response = MetodoPago::where('activo', true)
+        $response = MetodosPago::where('activo', true)
             ->orderBy('detalle', 'asc')
             ->get();
 

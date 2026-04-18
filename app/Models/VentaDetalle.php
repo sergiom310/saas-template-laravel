@@ -10,7 +10,7 @@ class VentaDetalle extends Model
 {
     use HasFactory;
 
-    protected $table = 'agd_venta_detalle';
+    protected $table = 'venta_detalle';
 
     protected $fillable = [
         'venta_id',
@@ -23,25 +23,22 @@ class VentaDetalle extends Model
         'total',
     ];
 
-    protected $casts = [
-        'cantidad' => 'integer',
-        'precio_unitario' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'descuento' => 'decimal:2',
-        'total' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'cantidad' => 'integer',
+            'precio_unitario' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'descuento' => 'decimal:2',
+            'total' => 'decimal:2',
+        ];
+    }
 
-    /**
-     * Relación con la venta
-     */
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class, 'venta_id');
     }
 
-    /**
-     * Relación con el producto
-     */
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'producto_id');

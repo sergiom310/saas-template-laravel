@@ -7,18 +7,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MetodosPago extends Model
 {
-    protected $connection = 'tenant';
-    protected $table = 'agd_metodo_pago';
+    protected $table = 'metodo_pago';
 
     public $timestamps = false;
 
     protected $fillable = [
         'detalle',
-        'activo'
+        'activo',
     ];
 
     protected $casts = [
-        'activo' => 'boolean'
+        'activo' => 'boolean',
     ];
 
     /**

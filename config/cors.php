@@ -9,10 +9,10 @@ return [
     // Vacío porque usamos allowed_origins_patterns para mayor flexibilidad
     'allowed_origins' => [],
 
-    // Permite todos los subdominios de agendas.grupoados.com (incluyendo el dominio raíz)
-    // Ejemplos: agendas.grupoados.com, api.agendas.grupoados.com, barberia1.agendas.grupoados.com
+    // Permite todos los subdominios de bitwia.com (incluyendo el dominio raíz)
+    // Ejemplos: agendas.bitwia.com, api.agendas.bitwia.com, barberia1.agendas.bitwia.com
     'allowed_origins_patterns' => [
-        '/^https:\/\/([a-z0-9-]+\.)?agendas\.grupoados\.com$/', // Producción (solo HTTPS)
+        '/^https:\/\/([a-z0-9-]+\.)?bitwia\.com$/', // Producción (solo HTTPS)
         '/^http:\/\/([a-z0-9-]+\.)?template\.local(:[0-9]+)?$/', // Desarrollo local
     ],
 

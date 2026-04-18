@@ -10,7 +10,7 @@ class VentaPago extends Model
 {
     use HasFactory;
 
-    protected $table = 'agd_venta_pagos';
+    protected $table = 'venta_pagos';
 
     protected $fillable = [
         'venta_id',
@@ -21,39 +21,29 @@ class VentaPago extends Model
         'fecha_pago',
     ];
 
-    protected $casts = [
-        'monto' => 'decimal:2',
-        'fecha_pago' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'monto' => 'decimal:2',
+            'metodo_pago_id' => 'integer',
+            'fecha_pago' => 'datetime',
+        ];
+    }
 
-    /**
-     * Relación con la venta
-     */
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class, 'venta_id');
     }
 
     /**
-     * Relación con el método de pago
+     * Relación con MetodoPago
      */
-    public function metodoPago(): BelongsTo
+    public function metodoPago()
     {
-        return $this->belongsTo(MetodosPago::class, 'metodo_pago_id');
+        return $this->belongsTo(MetodosPago::class, 'metodo_pago_id', 'id');
     }
 
-    /**
-     * Scope para filtrar por método de pago
-     */
-    public function scopeMetodo($query, $metodoId)
-    {
-        return $query->where('metodo_pago_id', $metodoId);
-    }
-
-    /**
-     * Scope para filtrar por rango de fechas
-     */
-    public function scopeFechaEntre($query, $desde, $hasta)
+    public function scopeFechaEntre($query, string $desde, string $hasta)
     {
         return $query->whereBetween('fecha_pago', [$desde, $hasta]);
     }

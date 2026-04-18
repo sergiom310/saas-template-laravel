@@ -35,19 +35,11 @@ Este documento explica cómo configurar GitHub Actions para hacer deploy a múlt
 
 | Secret Name | Valor | Descripción |
 |-------------|-------|-------------|
-| `VPS_HOST` | `IP o dominio del VPS de agendas` | Ej: `159.65.XXX.XXX` o `agendas.grupoados.com` |
+| `VPS_HOST` | `IP o dominio del VPS de agendas` | Ej: `159.65.XXX.XXX` o `bitwia.com` |
 | `VPS_USER` | `root` o tu usuario SSH | Usuario para conectarse por SSH |
 | `VPS_SSH_KEY` | `-----BEGIN OPENSSH PRIVATE KEY-----...` | Llave privada SSH completa |
 
-#### Environment: **parking**
-
-| Secret Name | Valor | Descripción |
-|-------------|-------|-------------|
-| `VPS_HOST` | `IP o dominio del VPS de parking` | Ej: `159.65.YYY.YYY` o `parking.grupoados.com` |
-| `VPS_USER` | `root` o tu usuario SSH | Usuario para conectarse por SSH |
-| `VPS_SSH_KEY` | `-----BEGIN OPENSSH PRIVATE KEY-----...` | Llave privada SSH completa |
-
-### Paso 3: Preparar los VPS
+### Paso 3: Preparar el VPS
 
 En **cada VPS**, ejecuta estos comandos:
 
@@ -69,13 +61,13 @@ Renombra los servicios en tu `docker-compose.yml`:
 
 ```yaml
 services:
-  saas-backend:        # antes: agendas-backend
+  saas-backend:
     # ... configuración
     
-  saas-webserver:      # antes: agendas-webserver
+  saas-webserver:
     # ... configuración
     
-  saas-frontend:       # antes: agendas-frontend
+  saas-frontend:
     # ... configuración
 ```
 
