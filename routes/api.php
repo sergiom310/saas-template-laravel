@@ -4,6 +4,7 @@ use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\EmpresaController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\PedidoController;
 use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\ProductsController;
 use App\Http\Controllers\API\RoleController;
@@ -167,6 +168,14 @@ Route::group(['middleware' => [JwtCookieMiddleware::class, JwtAuthMiddleware::cl
     Route::put('ventas/{id}/estado', [OrderController::class, 'updateEstado']);
     Route::post('ventas/{id}/pagos', [OrderController::class, 'addPago']);
     Route::delete('ventas/{id}', [OrderController::class, 'destroy']);
+
+    // Pedidos de clientes (carrito → orden → admin procesa pago)
+    Route::get('pedidos', [PedidoController::class, 'index']);
+    Route::post('pedidos', [PedidoController::class, 'store']);
+    Route::get('pedidos/estadisticas', [PedidoController::class, 'estadisticas']);
+    Route::get('pedidos/mis-pedidos', [PedidoController::class, 'misOrdenes']);
+    Route::get('pedidos/{id}', [PedidoController::class, 'show']);
+    Route::put('pedidos/{id}/status', [PedidoController::class, 'updateStatus']);
 });
 
 Route::fallback(function () {
